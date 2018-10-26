@@ -1,0 +1,1443 @@
+INIT_DEFAULT ;
+controlPanel ; 
+recSitesDBox ;
+
+zone = getappdata(0, 'zone_struct') ;
+zone.coordinates = [2, 5] ;
+zone.hemisphere = 1 ;
+fold = 'C:\Neuralynx_Data\DRA17\p1\p1c' ;
+for idx = 1:10 
+    zone.depths(idx).parameters.lp_thr = 100 ;
+    zone.depths(idx).parameters.hp_thr = 300 ;
+    zone.depths(idx).parameters.sp_thr = 4 ;
+    zone.depths(idx).parameters.baseline = 20 ;
+    zone.depths(idx).folders.output = '~/' ;
+    zone.depths(idx).depth = 50*idx ;
+
+    folder = [fold, num2str(idx), '\'] ;
+    tmp = dir(folder) ;
+    zone.depths(idx).folders.neuralynx = [folder, tmp(3).name] ;
+    idx
+    zone.depths(idx) = lfpAnalysis(zone.depths(idx)) ;
+
+    if idx >= 3 
+        zone.depths(idx).data.csd = csdAnalysis(zone.depths(idx-2:idx)) ;
+    end
+
+end
+
+
+
+% --- Executes on button press in cb_edit_param.
+function cb_edit_param_Callback(hObject, eventdata, handles)
+    if get(handles.cb_edit_param, 'Value')
+        set(handles.ed_lp_thr, 'Enable', 'on') ;
+        set(handles.ed_hp_thr, 'Enable', 'on') ;
+        set(handles.ed_sp_thr, 'Enable', 'on') ;
+        set(handles.ed_bline,  'Enable', 'on') ;
+        set(handles.pb_save_param, 'Visible', 'on') ;
+    else
+        set(handles.ed_lp_thr, 'Enable', 'off') ;
+        set(handles.ed_hp_thr, 'Enable', 'off') ;
+        set(handles.ed_sp_thr, 'Enable', 'off') ;
+        set(handles.ed_bline,  'Enable', 'off') ;
+        set(handles.pb_save_param, 'Visible', 'off') ;
+    end
+    guidata(hObject, handles) ;
+
+
+
+
+% --- Executes on button press in pb_save_param.
+function pb_save_param_Callback(hObject, eventdata, handles)
+    names = getappdata(0, 'names') ;
+    if ~isempty(names)
+        names = sort(names) ;
+        zone_name = names{end} ;
+        zone = getappdata(0, zone_name) ;
+    else
+        zone_name = 'zone1' ;
+        zone = getappdata(0, zone_name) ;
+    end
+    zone.depths(end).parameters.lp_thr   = str2num(get(handles.ed_lp_thr, 'String')) ;
+    zone.depths(end).parameters.hp_thr   = str2num(get(handles.ed_hp_thr, 'String')) ;
+    zone.depths(end).parameters.sp_thr   = str2num(get(handles.ed_sp_thr, 'String')) ;
+    zone.depths(end).parameters.baseline = str2num(get(handles.ed_bline,  'String')) ;
+    setappdata(0, zone_name, zone) ;
+
+
+    annot = sprintf('Zone coordinates: x = %f, y = %f', coord_new(1), coord_new(2)) ;
+    text(coord_new(1), coord_new(2), annot) ;
+
+
+
+    %r                  = find(ttl(1:10) == 0, 1, 'last') + 2 ;
+    %nb_cond            = max(ttl(1:20)) - ttl(r) ;
+    %nb_trials          = round(((nb_stim-2)/2) / nb_cond) ;
+
+        
+    % tmp                = num2str(ttl(r)) ;
+    % if tmp(end) ~= '0'
+    %     %event = event + 1 ; 
+    %     r = r + 1 ;
+    % end
+
+
+models = getappdata(0, 'models') ;
+set(h, 'String', models) ;
+set(h, position)
+
+[0.02976190476190475, 0.06804123711340208, 0.36904761904761896, 0.8783505154639175] ;
+
+[0.11475409836065573, 0.8553921568627451, 0.41393442622950816, 0.06862745098039216] ;
+
+
+    parameters_name = {'lp_thr', 'hp_thr', 'sp_thr', 'bline', 'cond', 'trials'} ;
+    new_parameters = [] ;
+    for iParameter = parameters_name
+        new_parameters = get(['tt.ed_', char(iParameter)], 'String') ;
+    end
+
+
+    lp_thr = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_lp_thr') ;
+    hp_thr = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_hp_thr') ;
+    sp_thr = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_sp_thr') ;
+    baseline = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_bline') ;
+    nb_cond = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_cond') ;
+    nb_trials = strcmp(get(get(tt.pan_parameters, 'Children'), 'Tag'), 'ed_trials') ;
+
+    parameters = getappdata(0, 'parameters') ;
+        set(handles.ed_lp_thr, 'String', num2str(parameters.lfp.lp_thr)) ;
+        set(handles.ed_hp_thr, 'String', num2str(parameters.lfp.hp_thr)) ;
+        set(handles.ed_sp_thr, 'String', num2str(parameters.lfp.sp_thr)) ;
+        set(handles.ed_bline, 'String', num2str(parameters.lfp.baseline)) ;
+        set(handles.ed_cond, 'String', num2str(parameters.stimulation.nb_cond)) ;
+        set(handles.ed_trials, 'String', num2str(parameters.stimulation.nb_trials)) ;
+
+
+            parameters.lp_thr    = get(handles.ed_lp_thr, 'String') ;
+    parameters.hp_thr    = get(handles.ed_hp_thr, 'String') ;
+    parameters.sp_thr    = get(handles.ed_sp_thr, 'String') ;
+    parameters.bline     = get(handles.ed_bline, 'String') ;
+    parameters.nb_cond   = get(handles.ed_nb_cond, 'String') ;
+    parameters.nb_trials = get(handles.ed_nb_trials, 'String') ;
+
+
+%# old UITABLE (based on Swing JTable, instead of the new JIDE-based)
+[hTable, hContainer] = uitable('v0', 'Parent',gcf, ...
+    'Data', magic(7), 'ColumnNames',cellstr(num2str((1:7)','C%d'))');
+set(hContainer, 'Units','normalized', 'Position',[0 0 1 1])
+
+%# handle mouse clicks on table headers
+jTableHeader = hTable.getTable().getTableHeader() ;
+h = handle(jTableHeader, 'CallbackProperties') ;
+set(h, 'MousePressedCallback',...
+    @(src,evt) disp( src.columnAtPoint(evt.getPoint())+1 ))
+    
+
+    handle_p = line(get(handles.ax_brain, 'Parent'),...
+                    coord_new(1), coord_new(2),...
+                    'Marker', 'x',...
+                    'LineWidth', 10,...
+                    'ButtonDownFcn', {@depthsDisplay, zone}) ;  
+
+
+
+    p = inputParser ;
+    %p.StructExpand = false ;
+    p.KeepUnmatched = true ;
+    default_graphical = {'lfp', '', ''} ;
+    expected_graphical = {'lfp', 'psth', 'spikes'} ;
+    check_graphical = @(x) any(validatestring(x, expected_graphical)) ;
+    default_handle = 'gca' ;
+    psth = 'psth' ;
+    addRequired(p, 'Point', @isstruct) ;
+    addOptional(p, 'GraphicalOutput', default_graphical) ;
+    %addOptional(p, 'expectedInputName', psth, check_graphical) ; 
+    addOptional(p, 'Handle', @ishandle) ;
+
+    parse(p, point, varargin{:}) ;
+    
+    point = p.Results.Point ;
+
+
+
+    p = inputParser ;
+    p.KeepUnmatched = true ;
+    addRequired(p, 'Point', @isstruct) ;
+    parse(p, point)
+    point = p.Results.Point ;
+    nb_cond = str2num(point.parameters.nb_cond) ;
+    
+    function logic = check_nb_cond (vect) 
+        logic = 0 ;
+        if length(vect) == 1
+            if vect >= 1 & vect <= nb_cond
+                logic = 1 ;
+            end
+        else
+            for iNum = vect
+                if iNum <= 1 | vect >= nb_cond
+                    logic = 0 ;
+                    return
+                end
+            end
+        end
+    default_lfp = 7 ; 
+    addOptional(p, 'Lfp', default_lfp, check_nb_cond) ;
+    addOptional(p, 'Psth', @isnumeric, check_nb_cond) ;
+    addOptional(p, 'Spikes', @isnumeric, check_nb_cond) ;
+    addOptional(p, 'Handle', @ishandle) ;
+
+    parse(p, point, varargin{:}) ;
+
+
+% To select particular data
+hcmenu = uicontextmenu ;
+hcb = ['set(gco, ''Color'', ''white'')'] ;
+item1 = uimenu(hcmenu, 'Label', 'remove', 'Callback', hcb) ;
+
+hlines = findall(handles.ax_plot, 'Type', 'line') ;
+for iLine = 1:length(hlines)
+    set(hlines(iLine), 'uicontextmenu', hcmenu) ;
+end
+    
+    function convertClass(value)
+        if ischar(value)
+            value = str2num(value) ;
+        else
+            value = value ;
+        end
+    end
+    fnames = fieldnames(point.parameters) ;
+    cellfun(convertClass, point.parameters.(fnames), 'UniformOutput', false) 
+    
+
+
+        % hcmenu = uicontextmenu ;
+        % item1 = uimenu(hcmenu, 'Label', 'LFP', 'Callback', {@displayData, zone.subzones{idx}, 'lfp'}) ;
+        % % add CSD, only if 3 or more depths have been explored
+        % if idx >= 3
+        %     item2 = uimenu(hcmenu, 'Label', 'CSD', 'Callback', {@displayData, zone.subzones{idx}, 'csd'}) ;
+        %     item3 = uimenu(hcmenu, 'Label', 'LFP & CSD', 'Callback', {@displayData, zone.subzones{idx}, 'lfp_csd'}) ;
+        % end
+        % set(handle_p, 'uicontextmenu', hcmenu) ;
+
+
+% --- Set default parameters to all the edit boxes of the given panel
+function setParameters(hObject, eventdata, handle, kind)
+    if strcmp(kind, 'default'), getParameters(hObject, eventdata, handle) ; end
+        
+    names       = {'lp_thr', 'hp_thr', 'sp_thr', 'bline', 'nb_cond', 'nb_trials'} ;
+    parameters  = getappdata(0, ['parameters_', kind]) ;
+    panel_child = get(handle, 'Children') ;
+    
+    for iParameter = names
+        set(panel_child(strcmp(get(panel_child, 'Tag'), ['ed_', char(iParameter)])),...
+            'String', parameters.(char(iParameter))) ;
+    end
+    guidata(hObject, guidata(hObject)) ;
+
+    % --- Get the parameters of all the edit boxes of the given panel
+function getParameters(hObject, eventdata, handle)
+    names       = {'lp_thr', 'hp_thr', 'sp_thr', 'bline', 'nb_cond', 'nb_trials'} ;
+    panel_child = get(handle, 'Children') ;
+    
+    for iParameter = names
+        parameters_new.(char(iParameter)) = get(panel_child(strcmp(get(panel_child, 'Tag'),...
+                                            ['ed_', char(iParameter)])), 'String') ;
+    end
+    
+    setappdata(0, 'parameters_new', parameters_new) ;
+    guidata(hObject, guidata(hObject)) ;
+
+
+    parameters_prev = {str2num(char(get(sort(findall(handles.pan_parameters, 'Style', 'edit')), 'String'))),...
+                       char(get(sort(findall(handles.pan_parameters, 'Style', 'edit')), 'Tag'))} ;
+    
+
+        figure_children = get(handle, 'Children') ;
+        table = get(figure_children(strcmp(get(figure_children, 'Type'), 'uitable'))) ;
+        content = table.Data ;
+        names = table.ColumnName ;
+        for iZone = 1 :2: length(content)
+            zone = content(:, iZone:iZone+1) ;
+            depths = zone(find(zone{2} == true)) ;
+            if ~isempty(depths)
+                data_compare.(char(names(iZone))) = depths ;
+            end
+        end
+        if ~isempty(data_compare)
+            setappdata(0, 'data_compare', data_compare) ;
+        end
+        delete(handle) ;
+
+X = [lfp1, fliplr(lfp2)];
+Y = [1:length(lfp1), fliplr(1:length(lfp2))] ;
+hold all ; 
+fill(Y, X, 'g') ;
+alpha(0.08) ;
+plot(lfp1) ;
+plot(lfp2) ;
+
+
+hold all ;
+for ii = 1:7
+    plot(point.subzones{1}.data.lfp(ii, :)) ;
+end
+tmp = mean(point.subzones{1}.data.lfp) ;
+plot(tmp, 'r--', 'LineWidth', 3) ;
+
+% --- Display mean of all conditions
+function cb_mean_Callback(hObject, eventdata, handles)
+    if get(handles.cb_mean, 'Value')
+        set(handles.cb_mean, 'String', 'Remove Mean of All Conditions') ;
+        set(...
+            findall(get(findall(get(handles.pan_axe, 'Children'), 'Type', 'axes'), 'Children'), 'LineStyle', 'none'),...
+            'LineStyle', '--') ;
+    else
+        set(handles.cb_mean, 'String', 'Display Mean of All Conditions') ;
+        set(...
+            findall(get(findall(get(handles.pan_axe, 'Children'), 'Type', 'axes'), 'Children'), 'LineStyle', '--'),...
+            'LineStyle', 'none') ;
+    end
+    guidata(hObject, handles) ;
+
+
+    function cb_mean_lfp_Callback(hObject, eventdata, handles)
+    if get(handles.cb_mean_lfp, 'Value') 
+        mean_lfp = meanLfp(handles.zone_name) ;
+        parameters = handles.parameters ;
+        timetab = linspace(0,...
+                        parameters.stim_time + parameters.bline,...
+                        parameters.points_used) ;
+        hold all ;
+        h = subplot(1, 1, 1, 'Parent', handles.pan_axe) ;
+        for iLfp = mean_lfp
+            plot(h, timetab, iLfp{1}) ;
+        end
+        hold off ;
+    else
+        lfpDisplay(hObject, eventdata, handles) ;
+    end
+    
+    %set(handles.tx_ap0, 'ButtonDownFcn', {@displayInfo, 'ap0'})
+    infos_CP = getappdata(0, 'infos_CP') ;
+    for iType = fieldnames(infos_CP)'
+        for iName = fieldnames(infos_CP.(char(iType)))'
+            set(handles.([char(iType), '_', char(iName)]), 'tooltipString', infos_CP.(char(iType)).(char(iName))) ;
+        end
+    end
+
+
+                           %'Position', [0.5, 0.5, 0.5, 0.5],...
+    handle = uicontrol('Style', 'checkbox',...
+                       'String', 'Legend',...
+                       'FontSize', 6,...
+                       'Value', 0,...
+                       'Callback', {@legendDisplay, gca, stim_legend}) ;
+
+
+    %text('Parent', gca, 0.8, 0.5, ['Current Source Density of depth n ', num2str(data_csd.depth)]) ;
+    txt_legend = {'sink', 'source', 'Zero'} ;
+    handle = uicontrol('Style', 'checkbox',...
+                       'String', 'Legend',...
+                       'FontSize', 10,...
+                       'Value', 0,...
+                       'Callback', {@legendDisplay, gca, txt_legend}) ;
+
+function showPreviousParameters
+
+    parameters_all = getappdata(0, 'parameters_all') ;
+    if size(parameters_all, 2) > 1
+        data = cell(0) ;
+        for iSet = fieldnames(parameters_all)' 
+            parameters_tmp = cell(0) ;
+            for iParam = fieldnames(parameters_all.(char(iSet)))'
+                parameters_tmp = cat(1, parameters_tmp, str2num(parameters_all.(char(iSet)).(char(iParam)))) ;
+            end
+            data = cat(2, data, parameters_tmp) ;
+        end
+        cnames = fieldnames(parameters_all)' ;
+        rnames = fieldnames(parameters_all.(char(cnames{1})))' ;
+        rnames = cat(2, rnames, 'Choose set') ;
+        row_format = [repmat({'char', 'logical'}, 1, length(cnames))] ;
+        row_editable = [false(1, length(rnames)-1), true] ;
+
+        f = figure('Name', 'PREVIOUS SETS OF PARAMETERS',...
+                   'Menubar', 'none',...
+                   'Units', 'normalized',...
+                   'Position', [0.3, 0.4, 0.25, 0.2]) ;
+        
+        tab_zones = uitable('Parent', f,...
+                            'Units', 'normalized',...
+                            'Position', [0.1, 0.1, 0.8, 0.8],...
+                            'Data', data,...
+                            'ColumnName', cnames,...
+                            'RowName', rnames,...
+                            'RowFormat', row_format,...
+                            'RowEditable', row_editable) ;
+    else
+        warndlg('No previous set of parameters detected',...
+                'FIRST SET') ;
+    end
+
+end
+
+
+
+
+
+
+% calcul du raster plot
+figure
+for noStim = 1:nbCondition
+
+    subplot (3, 3, noStim) ;
+    hold on
+    
+    xlabel('time (ms)')
+    ylabel('trial number')
+    title(['Raster Plot condition ' num2str(noStim)])
+    for iSerie = 1:nbSerie
+        
+        pointsTps = squeeze(ExtractedSpikes{noStim, iSerie, :}) ;
+        pointsTps = pointsTps / (nbPointsUsed*tpsStimMS) - tpsBordMS ;
+        ypos1 = ones(length(pointsTps), 1)*iSerie ;
+        plot(pointsTps, ypos1, '*b', 'MarkerSize', 1.5)
+
+    end
+
+    plot (0, 0.1, '^g', 'MarkerSize', 6)
+    plot (tpsStimMS, 0.1,' ^r', 'MarkerSize', 6)
+    xlim([-tpsStimMS/20 tpsStimMS+tpsStimMS/20])
+    
+    xlabel('time (ms)')
+    ylabel('trial number')
+    title(['Raster Plot condition ' num2str(noStim)])
+    
+    hold off
+
+end
+
+[Timestamps, ChannelNumbers, SampleFrequencies, NumberOfValidSamples, Samples, Header] =...
+Nlx2MatCSC(neur_data,[1 1 1 1 1], 1, 1, [] );
+
+
+
+
+            %lfp_data                = hiloFilter(whole,    lp_lfp,  sample_freq, 'low') ;
+            %lfp_data                = hiloFilter(lfp_data, hp_lfp, sample_freq, 'high') ;
+            
+lfp_mean(stim_index, :) = lfp_mean(stim_index, :) + (lfp_data' - lfp_data(1))' ;
+            
+            % --- Spikes processing
+            [timestamps, samples]   = Nlx2MatCSC(neur_data      ,...
+                                                 field_selection,...
+                                                 extract_header ,...
+                                                 extract_mode   ,...
+                                                 [stim_start, stim_stop]) ;
+            beg                     = stim_start - timestamps(1) ;
+            beg                     = round(10^-6 * beg * sample_freq) + 1 ;
+            samples                 = reshape(samples, [numel(samples), 1]) ;
+            samples                 = samples(beg : (beg + stim_pts - 1)) ;
+            
+
+            spike_data              = hiloFilter(samples, lp_sp, sample_freq, 'low') ;
+            spike_data              = hiloFilter(spike_data, hp_sp, sample_freq, 'high') ;
+            
+            bord_pts2               = round(0.001*sample_freq*10) ;
+            spike_mbline            = mean(spike_data(1:bord_pts2)) ;
+            spike_stdbline          = std(spike_data(1:bord_pts2)) ;
+            spike_lvl               = spike_mbline + spike_stdbline*sp_thr ;
+            spike_under             = 1 ;
+            spike_tmp(:)            = 0 ;
+
+            for iPoint = 1:stim_pts
+                if (spike_under == 1) && (spike_data(iPoint) > spike_lvl)
+                    spike_tmp(iPoint) = 1 ;
+                    spike_under       = 0 ;
+                elseif spike_data(iPoint) < spike_lvl
+                    spike_under = 1 ;
+                end
+            end
+
+            spike_xtract{stim_index, iTrial} = squeeze(find(spike_tmp)) ;
+
+
+
+
+    cellfun(@(x) (assignin('caller', x, str2num(point.parameters.(x)))),...
+            fieldnames(point.parameters), 'UniformOutput', false) ;
+
+
+
+
+% --- Change parameters
+function cb_edit_param_Callback(hObject, eventdata, handles)
+    if get(handles.cb_edit_param, 'Value')
+        set(handles.cb_edit_param, 'String', 'CONFIRM') ;
+        set(handles.cb_default,    'Value', 0) ;
+        set(findall(handles.pan_parameters, 'Style', 'edit'), 'Enable', 'on') ;
+    else
+        getParameters(hObject) ;
+        compareParameters(hObject) ; 
+        set(handles.cb_edit_param, 'String', 'Edit parameters') ;
+        set(findall(handles.pan_parameters, 'Style', 'edit'), 'Enable', 'off') ;
+    end
+    guidata(hObject, handles) ;
+
+
+
+% --- Set default parameters
+function cb_default_Callback(hObject, eventdata, handles)
+    if get(handles.cb_default, 'Value')
+        setParameters(hObject, 'default') ;
+        set(handles.cb_default, 'String', 'Restore last values') ;
+    else
+        setParameters(hObject, handles.set) ;
+        set(handles.cb_default, 'String', 'Set default values') ;
+    end
+    guidata(hObject, handles) ;
+
+
+% --- Set default parameters in proper edit fields
+function setParameters(hObject, parameters_set)
+    handles = guidata(hObject) ;
+    parameters = getappdata(0, 'parameters') ;
+    parameters = parameters.(parameters_set) ;
+    set(handles.tx_lp_lfp,    'String', parameters.lp_lfp) ;
+    set(handles.tx_hp_lfp,    'String', parameters.hp_lfp) ;
+    set(handles.tx_lp_sp,     'String', parameters.lp_sp) ;
+    set(handles.tx_hp_sp,     'String', parameters.hp_sp) ;
+    set(handles.tx_sp_thr,    'String', parameters.sp_thr) ;
+    guidata(hObject, handles) ;
+
+
+
+    depths = [num2str(zone.depths(2)), num2str(zone.depths(end))] ;
+    name = fullfile(handles.out_fold, 'CSD',...
+                    ['all(', depths, ')_(', num2str(parameters.lp_thr), ',', num2str(parameters.hp_thr1), ').png']) ;
+    ftmp = figure('Units', 'normalized',...
+                  'Visible', 'off') ;
+    atmp = axes('Parent', ftmp) ;
+    copyobj(get(handles.pan_axe, 'Children'), ftmp) ;
+    ftmp_axes = findall(get(ftmp, 'Children'), 'Type', axes) ;
+    ftmp_text = findall(get(ftmp_axes, 'Children'), 'Type', 'text') ;
+    set(ftmp_axes(2), 'FontSize', 6) ;
+    set(ftmp_text, 'FontSize', 6) ;
+    saveas(ftmp, name) ;
+    delete(ftmp) ;
+    avrecDisplay(hObject, eventdata, handles) ;
+
+        depths = ['2,', num2str(length(zone.depths))] ;
+    name = [handles.out_fold, '\CSD\', cond, '(', depths, ')',...
+            num2str(parameters.lp_thr), '_', num2str(parameters.hp_thr1), ').png'] ;
+    saveas(f, name) ;
+
+
+        name = [handles.out_fold, '\', 'PSTH(', num2str(parameters.lp_thr), ',',...
+                                            num2str(parameters.hp_thr1), ',',...
+                                            num2str(parameters.hp_thr2), ').png'] ;
+    ftmp = figure('Units', 'normalized',...
+                  'Position', [-1, -1, 0.1, 0.1]) ;
+    atmp = axes('Parent', ftmp) ;
+    copyobj(get(handles.pan_axe, 'Children'), ftmp) ;
+    ftmp_axes = findall(get(ftmp, 'Children'), 'Type', axes) ;
+    ftmp_text = findall(get(ftmp_axes, 'Children'), 'Type', 'text') ;
+    set(ftmp_axes(2), 'FontSize', 6) ;
+    set(ftmp_text, 'FontSize', 6) ;
+    saveas(ftmp, name) ;
+    delete(ftmp) ;
+
+        name = [handles.out_fold, '\', 'SPIKES(', num2str(parameters.lp_thr), ',',...
+                                              num2str(parameters.hp_thr1), ',',...
+                                              num2str(parameters.hp_thr2), ').png'] ;
+    ftmp = figure('Units', 'normalized',...
+                  'Position', [-1, -1, 0.1, 0.1]) ;
+    atmp = axes('Parent', ftmp) ;
+    copyobj(get(handles.pan_axe, 'Children'), ftmp) ;
+    ftmp_axes = findall(get(ftmp, 'Children'), 'Type', axes) ;
+    ftmp_text = findall(get(ftmp_axes, 'Children'), 'Type', 'text') ;
+    set(ftmp_axes(2), 'FontSize', 6) ;
+    set(ftmp_text, 'FontSize', 6) ;
+    saveas(ftmp, name) ;
+    delete(ftmp) ;
+
+
+
+            % spike_data              = whole ;
+            % spike_mbline            = mean(spike_data(1:bord_pts)) ;
+            % spike_stdbline          = std(spike_data(1:bord_pts)) ;
+            % spike_lvl               = spike_mbline + spike_stdbline*sp_thr ;
+            % spike_under             = 1 ;
+            % spike_tmp(:)            = 0 ;
+
+            % for iPoint = 1:points_used
+            %     if (spike_under == 1) && (spike_data(iPoint) > spike_lvl)
+            %         spike_tmp(iPoint) = 1 ;
+            %         spike_under       = 0 ;
+            %     elseif spike_data(iPoint) < spike_lvl
+            %         spike_under = 1 ;
+            %     end
+            % end
+
+            % spikes{stim_index, iTrial} = squeeze(find(spike_tmp)) ;
+
+    spikes             = cell(NB_COND, NB_TRIALS) ;
+    spike_tmp          = zeros(1, stim_pts) ;
+
+                % --- Filtering the whole data
+    %samples_tmp        = reshape(samples, 1, numel(samples)) ;
+    %[b, a] = butter(4, 50/(SAMPLE_FREQ/2), 'low') ;
+    %Hd = dfilt.df2(b, a) ;
+    %samples_tmp = filter(Hd, samples_tmp) ;
+    %samples_tmp = filtfilt(b, a, samples_tmp) ;
+    %[b, a]             = cheby2(4, 20, 50/(SAMPLE_FREQ/2), 'low') ;
+    %samples_tmp2        = filtfilt(b, a, samples_tmp) ;
+    %samples            = reshape(samples_tmp, size(samples, 1), size(samples, 2)) ;
+
+
+    name = [handles.fold, '\', 'LFP(', num2str(parameters.lp_lfp), ',',...
+                                           num2str(parameters.hp_lfp), ',',...
+                                           num2str(parameters.hp_sp), ',',...
+                                           num2str(parameters.hp_sp), ').png'] ;
+    ftmp = figure('Units', 'normalized',...
+                  'Visible', 'off') ;
+    atmp = axes('Parent', ftmp) ;
+    copyobj(get(handles.pan_axe, 'Children'), ftmp) ;
+    ftmp_axes = findall(get(ftmp, 'Children'), 'Type', 'axes') ;
+    ftmp_text = findall(get(ftmp_axes(1), 'Children'), 'Type', 'text') ;
+    set(ftmp_axes(2), 'FontSize', 6) ;
+    set(ftmp_text, 'FontSize', 6) ;
+    saveas(ftmp, name) ;
+    delete(ftmp) ;
+
+
+        name = [handles.fold, '\', 'LFPmean(', num2str(parameters.lp_thr), ',',...
+                                               num2str(parameters.hp_thr1), ',',...
+                                               num2str(parameters.hp_thr2), ').png'] ;
+    ftmp = figure('Units', 'normalized',...
+                  'Visible', 'off') ;
+    atmp = axes('Parent', ftmp) ;
+    copyobj(get(handles.pan_axe, 'Children'), ftmp) ;
+    ftmp_axes = findall(get(ftmp, 'Children'), 'Type', axes) ;
+    ftmp_text = findall(get(ftmp_axes, 'Children'), 'Type', 'text') ;
+    set(ftmp_axes(2), 'FontSize', 6) ;
+    set(ftmp_text, 'FontSize', 6) ;
+    saveas(ftmp, name) ;
+    delete(ftmp) ;
+
+
+    Y = get(gca, 'YLim') ;
+    harea = area([0, handles.bound(2)], [Y(1), sum(abs(Y)) ; Y(1), sum(abs(Y))]) ;
+    harea_patch = findobj(harea, 'Type', 'Patch') ;
+    set(harea_patch, 'FaceColor', 'r',...
+                     'LineStyle', 'none',...
+                     'EdgeColor', 'none',...
+                     'FaceAlpha', .5) ;
+
+
+
+function cb_edit_Callback(hObject, eventdata, handles) 
+    if get(handles.cb_edit, 'Value')
+        set(findall(handles.pan_parameters, 'Style', 'edit'), 'Enable', 'on') ;
+    else
+        set(findall(handles.pan_parameters, 'Style', 'edit'), 'Enable', 'off') ;
+        new_point = createNewPoint(hObject) ;
+        if ~isempty(new_point)
+            l = length(fieldnames(handles.name)) ;
+            handles.name.(['set', num2str(l+1)]) = new_point.name ;
+            lfpDisplay(hObject, eventdata, handles, new_point.name, handles.idx) ;
+            if handles.idx >= 3
+                new_point.subzones{handles.idx}.data.csd = csdAnalysis(new_point, handles.idx) ;
+                handles.point_csd = new_point.subzones{handles.idx-1}.data.csd ;
+            end
+            handles = guidata(hObject) ;
+        end
+    end
+    guidata(hObject, handles) ;
+
+
+
+% --- Display raw data
+function lfpRawDisplay(hObject, eventdata, handles)
+    pa = handles.param ;
+    pt = handles.point ;
+    bound = round(0.001*SAMPLE_FREQ*[param.bline,...
+                                     param.lstim,...
+                                     param.after]) ;
+    
+    timetab = linspace(-bound(1),...
+                        sum(bound) - bound(1),...
+                        sum(bound)+1) ;
+
+    ticks = round(bound/SAMPLE_FREQ*1000) ;
+    h = subplot(1, 1, 1, 'Parent', handles.pan_raw) ;
+    plot(h, timetab(1:size(pt.lfp_raw(1,:), 2)), pt.lfp_raw') ;
+    set(h, 'XLim'      , [-bound(1), sum(bound)-bound(1)],...
+           'XTick'     , [-bound(1) :round(50*SAMPLE_FREQ/1000): sum(bound)-bound(1)],...
+           'XTickLabel', [-ticks(1) :50: sum(ticks)-ticks(1)],...
+           'FontSize', 7) ;
+    guidata(hObject, handles) ;
+
+
+
+
+function lfpMeanDisplay(hObject, eventdata, handles, mean_lfp)
+    global NB_COND NB_TRIALS ;
+    parameters = handles.param ;
+
+    timetab = linspace(-bound(1),...
+                        bound(1) + bound(2),...
+                        size(mean_lfp{1}, 2)) ;
+
+    stim_legend = cell(NB_COND, 1) ;
+    h = subplot(1, 1, 1, 'Parent', handles.pan_axe) ;
+    hold all ;
+    for iCond = 1:length(mean_lfp) 
+        plot(h, timetab(1:size(mean_lfp{1}, 2)+1), mean_lfp{iCond}) ;
+        stim_legend(iCond) = cellstr(strcat('Stimulus ', num2str(iCond))) ;
+    end
+    hold off ;
+    set(h, 'XLim', [0, bound(1) + bound(2)],...
+           'Position', [0.04, 0.05, 0.92, 0.92],...
+           'FontSize', 8) ;
+
+    %xlabel('time (ms)')
+    set(handles.tx_title, 'String', 'Mean of LFP by CONDITIONS across all depths') ;
+    hcmenu = uicontextmenu ;
+    item1 = uimenu(hcmenu, 'Label', 'remove selected data', 'Callback', @removeSingleData) ;
+    item2 = uimenu(hcmenu, 'Label', 'remove all other data', 'Callback', @removeAllExceptOne) ;
+
+    hlines = findall(h, 'Type', 'line') ;
+    for iLine = hlines'
+        set(iLine, 'uicontextmenu', hcmenu) ;
+    end
+
+    guidata(hObject, handles) ;
+
+
+    
+    handles.legend = uicontrol('Style', 'checkbox',...
+                               'Units', 'normalized',...
+                               'Position', [0.52, 0.92, 0.06, 0.03],...
+                               'String', 'Hide legend',...
+                               'FontSize', 8,...
+                               'Value', 1,...
+                               'Callback', {@legendDisplay, gca, legend_txt},...
+                               'BackgroundColor', 'white',...
+                               'Tag', 'cb_legend') ;
+
+    
+function legendDisplay(hObject, eventadata, handle, legend_tx)
+    handles = guidata(hObject) ;
+    stimuli_features = getappdata(0, 'stimuli_features') ;
+    if ~isempty(stimuli_features)
+        legend_tx = cellfun(@(x) ([num2str(x), ' Hz']),...
+                            stimuli_features,...
+                            'UniformOutput', false) ;
+    end
+    if get(hObject, 'Value')
+        legend(handle, legend_tx, 'FontSize', 8) ;
+        set(hObject, 'String', 'Hide legend') ;
+    else
+        legend(handle, 'off') ;
+        set(hObject, 'String', 'Show legend') ;
+    end
+
+        handles.tx_lat = uicontrol('Parent', handles.pan_axe,...
+                               'Style', 'text',...
+                               'Units', 'normalized',...
+                               'Position', [0.85, 0.6, 0.12, 0.1],...
+                               'FontSize', 8,...
+                               'String', ['average latency: ',...
+                                          num2str(mean(latencies(:, 2))-lstim),...
+                                          ' ', UNITS.time],...
+                               'BackgroundColor', 'white') ;
+
+
+         if iEvent > NB_TRIALS
+            iTrial = 1 ;
+        else
+            iTrial = iTrial + 1 ;
+        end
+        spike_under = 1 ;
+        spike_tmp = zeros(1, length(stim_cut{iEvent})) ;
+        for iPoint = 1:length(stim_cut{iEvent})
+            if (spike_under == 1) && (stim_cut{iEvent}(iPoint) > threshold{iEvent})
+                spike_tmp(iPoint) = 1 ;
+                spike_under = 0 ;
+            elseif stim_cut{iEvent}(iPoint) < threshold{iEvent}
+                spike_under = 1 ;
+            end
+        end
+        spikes.xtract{flags.index(iEvent), iTrial} = squeeze(find(spike_tmp)) ;
+    end
+
+
+    
+    spike_bline = round(0.001*SAMPLE_FREQ*10) ;
+    threshold = arrayfun(@(x) (mean(stim_cut{x}(1:spike_bline)) + std(stim_cut{x}(1:spike_bline))*parameters.sp_thr), l, 'UniformOutput', false) ;
+
+    idx = 0 ;
+    iTrial = 0 ;
+
+
+   switch (NB_ZONES - zone_idx)
+        case NB_ZONES - 1
+            set(handles.pb_prev_zone  , 'Enable', 'off') ;
+            set(handles.pb_next_zone  , 'Enable', 'on') ;
+        case 0
+            set(handles.pb_prev_zone  , 'Enable', 'on') ;
+            set(handles.pb_next_zone  , 'Enable', 'off') ;
+        otherwise
+            set(handles.pb_prev_zone  , 'Enable', 'on') ;
+            set(handles.pb_next_zone  , 'Enable', 'on') ;
+        end
+    end
+    if length(zone.depths) == 1
+        set(handles.pb_prev_depth, 'Enable', 'off') ;
+        set(handles.pb_next_depth, 'Enable', 'off') ;
+    else
+        switch (length(zone.depths) - handles.idx)
+        case (length(zone.depths) - 1)
+            set(handles.pb_prev_depth, 'Enable', 'off') ;
+            set(handles.pb_next_depth, 'Enable', 'on') ;
+        case 0
+            set(handles.pb_prev_depth, 'Enable', 'on') ;
+            set(handles.pb_next_depth, 'Enable', 'off') ;
+        otherwise
+            set(handles.pb_prev_depth, 'Enable', 'on') ;
+            set(handles.pb_next_depth, 'Enable', 'on') ;
+        end
+    end
+
+
+      zone_idx = str2double(zone_name(5:end)) ;
+    if NB_ZONES == 1
+        set(handles.pb_incr_p     , 'Enable', 'off') ;
+        set(handles.pb_incr_m     , 'Enable', 'off') ;
+        set(handles.ed_depths_incr, 'Enable', 'off') ;
+        set(handles.lb_cond       , 'Enable', 'off') ;
+        set(handles.pb_compare    , 'Enable', 'off') ;
+        set(handles.pb_prev_zone  , 'Enable', 'off') ;
+        set(handles.pb_next_zone  , 'Enable', 'off') ;
+    else
+        set(handles.pb_incr_p     , 'Enable', 'on') ;
+        set(handles.pb_incr_m     , 'Enable', 'on') ;
+        set(handles.ed_depths_incr, 'Enable', 'on') ;
+        set(handles.lb_cond       , 'Enable', 'on') ;
+        set(handles.pb_compare    , 'Enable', 'on') ;
+    end
+
+
+
+    % handles.legend = uicontrol('Style', 'checkbox',...
+    %                            'Units', 'normalized',...
+    %                            'Position', [0.52, 0.92, 0.06, 0.03],...
+    %                            'String', 'Hide legend',...
+    %                            'FontSize', 8,...
+    %                            'Value', 1,...
+    %                            'Callback', {@legendDisplay, gca, legend_txt},...
+    %                            'BackgroundColor', 'white',...
+    %                            'Tag', 'cb_legend') ;
+
+
+% % --- Executes on button press in cb_mean_lfp.
+% function cb_mean_lfp_Callback(hObject, eventdata, handles)
+%     if get(handles.cb_mean_lfp, 'Value') 
+%         set(handles.cb_mean, 'Enable', 'off') ;
+%         mean_lfp = meanLfp(handles.name.set1) ;
+%         lfpMeanDisplay(hObject, eventdata, handles, mean_lfp) ;
+%     else
+%         set(handles.cb_mean, 'Enable', 'on') ;
+%         lfpDisplay(hObject) ;
+%         handles = guidata(hOject) ;
+%         hline = findall(handles.pan_axe, 'Tag', 'mean') ;
+%         set(hline, 'LineStyle', '--') ;
+%     end
+%     guidata(hObject, handles) ;
+
+
+    
+    % hl = findall(handles.displayResults, 'Tag', 'cb_legend') ;
+    % if ~isempty(hl), set(hl, 'Visible', 'off') ; end
+    % if exist('handles.legend', 'var'), set(handles.handle, 'Visible', 'on') ; end
+    
+        %tmp = sort([folders(3:end).datenum]) ;
+    %idx = find([folders.datenum] == tmp(1)) ;
+    % if NB_ZONES == 0
+    %     last_folder = fullfile(NEUR_FOLDER, folders(3).name) ;
+    % else
+    %     k = length(ZONES.(['zone', num2str(NB_ZONES)]).depths) ;
+    %     last_folder = fullfile(NEUR_FOLDER, folders(k+3).name) ;
+    % end
+
+
+    spike_xtract       = cell(NB_COND, NB_TRIALS) ;
+    stim_pts           = round(0.001*SAMPLE_FREQ*stim_time) ;
+    spike_tmp          = zeros(1, stim_pts) ;
+
+    for iTrial = 1:NB_TRIALS
+        for iCond = 1:NB_COND
+            stim_start              = time_stamps(event) ;
+            stim_stop               = time_stamps(event+1) ;
+            stim_index = dec2bin(ttl(event)) ;
+            stim_index = bin2dec(stim_index(end-4:end)) ;
+            [timestamps, samples]   = Nlx2MatCSC(fullfile(folder, 'CSC1.ncs'), [1 0 0 0 1], 0, 4, [stim_start, stim_stop]) ;
+            beg                     = stim_start - timestamps(1) ;
+            beg                     = round(10^-6 * beg * SAMPLE_FREQ) + 1 ;
+            samples                 = reshape(samples, [numel(samples), 1]) ;
+            samples                 = samples(beg : (beg + stim_pts - 1)) ;
+            bord_pts2               = round(0.001*SAMPLE_FREQ*10) ;
+            spike_mbline            = mean(samples(1:bord_pts2)) ;
+            spike_stdbline          = std(samples(1:bord_pts2)) ;
+            spike_lvl               = spike_mbline + spike_stdbline*parameters.sp_thr ;
+            spike_under             = 1 ;
+            spike_tmp(:)            = 0 ;
+
+            for iPoint = 1:stim_pts
+                if (spike_under == 1) && (samples(iPoint) > spike_lvl)
+                    spike_tmp(iPoint) = 1 ;
+                    spike_under       = 0 ;
+                elseif samples(iPoint) < spike_lvl
+                    spike_under = 1 ;
+                end
+            end
+
+            spike_xtract{stim_index, iTrial} = squeeze(find(spike_tmp)) ;
+            
+            event = event + 2 ;
+        end
+    end
+
+    spikes.xtract = spike_xtract ;
+
+
+    % --- Choose new set of parameters
+% function pb_choose_set_Callback(hObject, eventdata, handles)
+%     chooseSetOfParameters ;
+
+% --- Define new parameters
+function pb_define_new_Callback(hObject, eventdata, handles)
+    param = getappdata(0, 'parameters') ;
+    param = struct2cell(structfun(@(x) (str2double(x)), param.set0, 'UniformOutput', false)) ;
+    f = figure('NumberTitle', 'off',...
+               'Name', 'NEW SET',...
+               'Menubar', 'none',...
+               'Units', 'normalized',...
+               'Position', [0.4, 0.4, 0.18, 0.20]) ;
+
+    cnames = {'Values'} ;
+    rnames = {'Low_pass (LFP)',...
+              'Low-pass (Spikes)',...
+              'High-pass (LFP)',...
+              'High-pass (Spikes)',...
+              'Spike threshold',...
+              'Stimulus duration',...
+              'Baseline',...
+              'Post-stimulus time'} ;
+
+    column_editable = true ;
+    tab_param = uitable('Parent'        , f,...
+                        'Units'         , 'normalized',...
+                        'FontWeight'    , 'demi',...
+                        'Enable'        , 'on',...
+                        'Position'      , [0, 0, 1, 1],...
+                        'Data'          , param,...
+                        'ColumnName'    , cnames,...
+                        'ColumnEditable', column_editable,...
+                        'RowName'       , rnames,...
+                        'ColumnWidth'   , 'auto') ;
+
+    handles_u = uicontrol('Parent'  , f,...
+                          'Units'   , 'normalized',...
+                          'Position', [0.70, 0.01, 0.28, 0.16],...
+                          'Style'   , 'pushbutton',...
+                          'String'  , 'Save & Close',...
+                          'Callback', {@getFeatures, tab_param}) ;
+    
+    handles_v = uicontrol('Parent'  , f,...
+                          'Units'   , 'normalized',...
+                          'Position', [0.28, 0.01, 0.38, 0.16],...
+                          'Style'   , 'pushbutton',...
+                          'String'  , 'Apply to all data',...
+                          'Callback', {@recomputeResults, tab_param}) ;
+
+    guidata(hObject, handles) ;
+
+% --- Retrieve the features
+function getFeatures(src, evt, tab_param)
+    content = get(tab_param, 'Data') ;
+    f = {'lp_lfp', 'hp_lfp', 'lp_sp', 'hp_sp', 'sp_thr', 'lstim', 'bline', 'after'} ;
+    content = arrayfun(@(x) (num2str(x)), content, 'UniformOutput', false) ;
+    p = cell2struct(content, f, 1) ;
+    parameters = getappdata(0, 'parameters') ;
+    l = length(fieldnames(parameters)) ;
+    parameters.(['set', num2str(l)]) = p ;
+    setappdata(0, 'parameters', parameters) ;
+    delete(get(tab_param, 'Parent')) ;
+
+flags.twdows = [(flags.starts-20*1000)', (flags.stops+20*1000)'] ;
+    flags.blines = [arrayfun(@(x) (find(timestamps >= x, 1, 'first'))  , flags.twdows(:, 1), 'UniformOutput', false),...
+                    arrayfun(@(x) (find(timestamps >= x, 1, 'first')-1), flags.twdows(:, 2), 'UniformOutput', false)] ;
+
+
+    spikes.tuning = zeros(NB_COND, NB_TRIALS) ;
+    spikes.raster = cell(NB_COND, NB_TRIALS) ;
+    idx = repmat(1:NB_TRIALS, NB_COND, 1) ;
+
+
+    spikes.tuning(flags.index(iEvent), idx(iEvent)) = flags.blines(iEvent, 2) - flags.blines(iEvent, 1) + 1 ;
+        spikes.raster{flags.index(iEvent), idx(iEvent)} = timestamps(flags.blines(iEvent, 1) : flags.blines(iEvent, 2)) - flags.starts(iEvent) ;
+    
+
+h = waitbar(0,'Please wait...');
+steps = 1000 ;
+for step = 1:steps
+    % computations take place here
+    waitbar(step / steps)
+end
+close(h) 
+
+
+
+function zoomOnCondition(hObject, eventdata, iAxe)
+%     handles = guidata(hObject) ;
+%     global SAMPLE_FREQ SET ;
+%     % hl = findall(handles.displayResults, 'Tag', 'cb_legend') ;
+%     % set(hl, 'Visible', 'off') ;
+%     param = getappdata(0, 'parameters') ;
+%     param = structfun(@(x) (str2double(x)), param.(SET), 'UniformOutput', false) ;
+%     bound = round(0.001*SAMPLE_FREQ*[param.bline,...
+%                                      param.lstim,...
+%                                      param.after]) ;
+%     ticks = round(bound/SAMPLE_FREQ*1000) ;
+%     condition = get(iAxe, 'Tag') ;
+%     f = figure('NumberTitle', 'off',... 
+%                'Name', ['CSD -- zoom on condition ', condition],...
+%                'Menubar', 'none',...
+%                'Units', 'normalized',...
+%                'Position', [0.3, 0.1, 0.30, 0.85],...
+%                'Color', 'white') ;
+
+%     data_handles = get(iAxe, 'Children') ;
+%     hold on ;
+%     for iData = 1 :3: length(data_handles)
+%         handle = data_handles(iData:iData+2) ;
+%         X1 = get(handle(1), 'XData') ; Y1 = get(handle(1), 'YData') ;
+%         X2 = get(handle(2), 'XData') ; Y2 = get(handle(2), 'YData') ;
+%         X3 = get(handle(3), 'XData') ; Y3 = get(handle(3), 'YData') ;
+%         plot(X1, Y1,...
+%              'b', 'LineWidth', 2) ;
+%         plot(X2, Y2,...
+%              'k--', 'LineWidth', 1) ;
+%         plot(X3, Y3,...
+%              'r', 'LineWidth', 2) ;
+%     end
+%     hold off ;
+%     set(gca, 'XLim'      , [-bound(1), sum(bound)-bound(1)],...
+%              'XTick'     , [-bound(1) :round(150*SAMPLE_FREQ/1000): sum(bound)-bound(1)],...
+%              'XTickLabel', [-ticks(1) :150: sum(ticks)-ticks(1)],...
+%              'YLim'      , [2, -100],...
+%              'FontSize'  , 6) ;
+
+%     guidata(hObject, handles) ;
+
+
+
+% function legendDisplay(hObject, eventadata, handle, legend_tx)
+%     handles = guidata(hObject) ;
+%     stimuli_features = getappdata(0, 'stimuli_features') ;
+%     if ~isempty(stimuli_features)
+%         legend_tx = cellfun(@(x) ([num2str(x), ' Hz']),...
+%                             stimuli_features,...
+%                             'UniformOutput', false) ;
+%     end
+%     if get(hObject, 'Value')
+%         legend(handle, legend_tx, 'FontSize', 8) ;
+%         set(hObject, 'String', 'Hide legend') ;
+%     else
+%         legend(handle, 'off') ;
+%         set(hObject, 'String', 'Show legend') ;
+%     end
+
+
+neur_data = getappdata(0, 'neur_data') ;
+    d = dir(neur_data) ;
+    tmp = find(neur_data == '\', 1, 'last') ;
+    idx = find(strcmp({d.name}, [neur_data(tmp+1:end), '_OlcavStruct.mat'])) ;
+    if isempty(idx)
+        warndlg('No "OlcavSruct" folder detected', '') ;
+        return ;
+    end
+    exp_struct = open(fullfile(neur_data, d(idx).name)) ;
+    exp_features = exp_struct.features ;
+
+
+
+% --- Executes on button press in cb_bline.
+function cb_bline_Callback(hObject, eventdata, handles)
+    global SET SAMPLE_FREQ ;
+    param = getappdata(0, 'parameters') ;
+    param = structfun(@(x) (str2double(x)), param.(SET), 'UniformOutput', false) ;
+    bound = round(0.001*SAMPLE_FREQ*[param.bline,...
+                                     param.lstim,...
+                                     param.after]) ;
+    if get(hObject, 'Value')
+        set(findall(handles.pan_axe, 'Tag', 'csd'), 'XLim', [0, sum(bound)]) ;
+    else
+        set(findall(handles.pan_axe, 'Tag', 'csd'), 'XLim', [-bound(1), sum(bound)-bound(1)]) ;
+    end
+    guidata(hObject, handles) ; 
+
+
+
+
+function ed_gain_Callback(hObject, eventdata, handles)
+    if isnan(str2double(get(hObject, 'String')))
+        warndlg('Gain must be a NUMBER', 'WRONG NUMBER') ;
+        set(hObject, 'String', 'Gain') ;
+        return ;
+    end
+    csdDisplay(hObject) ;
+    guidata(hObject, handles) ;
+
+
+ X = [min(sraw, [], 1), fliplr(max(sraw, [], 1))] ;
+    Y = [1:size(sraw, 2), fliplr(1:size(sraw, 2))] ;
+    h = subplot(1, 1, 1, 'Parent', handles.pan_axe) ;
+    fill(Y, X, [190 255 250]/255, 'LineStyle', 'none') ;
+
+
+                % timestamps = timestamps - tmp ;
+
+            % low = cell2mat(arrayfun(@(x) (find(flags.starts-20000 <= timestamps(x), 1, 'last')), 1:length(timestamps), 'UniformOutput', false)) ;
+            % up  = cell2mat(arrayfun(@(x) (find(flags.stops+20000 >= timestamps(x), 1, 'first')), 1:length(timestamps), 'UniformOutput', false)) ;
+            
+            % for iEvent = 1:NB_COND*NB_TRIALS
+            %     spikes.tuning(flags.index(iEvent), ceil(iEvent/NB_COND)) = up(iEvent) - low(iEvent) + 1 ;
+            %     spikes.raster{flags.index(iEvent), ceil(iEvent/NB_COND)} = timestamps(low(iEvent):up(iEvent)) - time_stamps(flags.events(iEvent)) ;
+            % end
+            %time_stamps = time_stamps + tmp ;
+            % idx = event ;
+            % for iTrial = 1:NB_TRIALS
+            %     for iCond = 1:NB_COND 
+            %         startstop = [time_stamps(idx)-(20*1000), time_stamps(idx+1)+(20*1000)] ;
+            %         if ispc
+            %             timestamps = Nlx2MatSpike(fullfile(folder, 'SE1.nse'), [1 0 0 0 0], 0, 4, startstop) ;
+            %         elseif isunix
+            %             timestamps = Nlx2MatSpike_v3(fullfile(folder, 'SE1.nse'), [1 0 0 0 0], 0, 4, startstop) ;
+            %         end
+            %         if timestamps(1) < startstop(1), timestamps = timestamps(2:end) ; end
+            %         iStim = flags.index(iCond+(iTrial-1)*NB_COND) ;
+            %         spikes.tuning(iStim, iTrial) = length(timestamps) ;
+            %         spikes.raster{iStim, iTrial} = timestamps - startstop(1) ;
+            %         idx = idx + 2 ;
+            %     end
+            % end
+
+
+
+folder = cell(1,4) ;
+folder{1} = 'C:\jr_sfx\P1\2013-07-12_11-56-07' ; 
+folder{2} = 'C:\jr_sfx\P1\2013-07-12_12-11-18' ;
+folder{3} = 'C:\jr_sfx\P1\2013-07-12_12-22-55' ;
+folder{4} = 'C:\jr_sfx\P1\2013-07-12_12-35-31' ;
+samples = cell(1, 4) ;
+global NB_COND SAMPLE_FREQ NB_TRIALS SET GAIN ;
+NB_COND = 30 ;
+NB_TRIALS = 20 ;
+for ii = 1:4
+    hdr = Nlx2MatCSC(fullfile(folder{ii}, 'CSC1.ncs'), [0 0 0 0 0], 1, 1, []) ;
+    SAMPLE_FREQ = char(hdr(13)) ;
+    SAMPLE_FREQ = str2double(SAMPLE_FREQ(20:end)) ;
+    HICUT       = char(hdr(end-2)) ;
+    HICUT       = str2double(HICUT(11:end)) ;
+    GAIN        = char(hdr(end-1)) ;
+    if isempty(GAIN), GAIN = char(hdr(end-2)) ; end
+    GAIN        = str2double(GAIN(10:end)) ;
+    samples{ii} = cell(16, 1) ;
+    for jj = 1:16
+        samples{ii}{jj} = zeros(30, 18181) ;
+        d = nlxRecProc(folder{ii}, jj) ;
+        samples{ii}{jj} = d ;
+    end
+end
+
+
+tmp = 0 ;
+for kk = 1:30
+tmp = tmp + 1 ;
+if tmp == 10
+    figure ;
+    tmp = 1 ;
+end
+subplot(1, 9, tmp) ;
+%kk = 1 ;
+hold on ;
+tt = zeros(64, 4546) ;
+for ii = 1:4
+    for jj = 1:16
+        idx = jj + (16*(ii-1)) ;
+        tt(idx, :) = samples{ii}{jj}(1, 1515:6060) ;
+        %plot(samples{ii}{jj}(kk, 1515:6060)-5*idx)
+    end
+end
+hold off ;
+end
+
+
+
+
+%lfp = zeros(480, 18181) ;
+dif = cell(1,4) ;
+for jj = 1:4
+    samples = [] ;
+    for iCSC = 1:16
+        tmp = Nlx2MatCSC(fullfile(folder{jj}, ['CSC', num2str(iCSC), '.ncs']), [0 0 0 0 1], 0, 2, [1 5000]) ;
+        samples = [samples ; tmp(:)] ;
+        %[d, s] = nlxRecProc(folder, ii) ;
+        %lfp(ii+(30*(ii-1)):30*ii, :) = d ;
+        % if iCSC > 1
+        %     dif{jj} = [dif{jj} ; samples(iCSC-1,:)'\samples(iCSC,:)'] ;
+        % end
+    end
+end
+
+dif = cell(30, 1) ;
+for ii = 1:30
+    for jj = 0:14
+        dif{ii} = [dif{ii} ; (lfp(ii+(30*jj))' \ lfp(ii+(30*(jj+1)))')] ;
+    end
+end
+
+tt = zeros(64, 3030) ;
+
+for ii = 1:64
+    tt(ii, :) = mean(zone.subzones{ii}.lfp(:, 1:3030)) ;
+end
+
+dif = [] ;
+for ii = 2:64
+    dif = [dif ; tt(ii-1)'\tt(ii)'] ;
+end
+
+
+
+
+
+global SAMPLE_FREQ GAIN HICUT
+folder = 'C:\bcl_csd7\P1' ;
+d = dir(folder) ;
+zone1 = cell(7, 1) ;
+%zone2 = cell()
+for ii = 3:length(d)
+    data_folder = fullfile(folder, d(ii).name) ;
+    dd = dir(fullfile(data_folder, 'CSC1.ncs')) ;
+    if dd.bytes == 16384
+        return ; 
+    end
+    if ispc
+        hdr = Nlx2MatCSC(fullfile(data_folder, 'CSC1.ncs'), [0 0 0 0 0], 1, 1, []) ;
+    elseif isunix
+        hdr = Nlx2MatCSC_v3(fullfile(data_folder, 'CSC1.ncs'), [0 0 0 0 0], 1, 1, []) ;
+    end
+    SAMPLE_FREQ = char(hdr(13)) ;
+    SAMPLE_FREQ = str2double(SAMPLE_FREQ(20:end)) ;
+    HICUT       = char(hdr(end-2)) ;
+    HICUT       = str2double(HICUT(11:end)) ;
+    GAIN        = char(hdr(end-1)) ;
+    if isempty(GAIN), GAIN = char(hdr(end-2)) ; end
+        GAIN        = str2double(GAIN(10:end)) ;
+    ii
+    [lfp, s] = nlxRecProc(data_folder) ;
+    for jj = 1:7
+        zone1{jj} = cat(1, zone1{jj}, lfp(jj, :)) ;
+    end
+end
+
+for jj = 1:7
+    figure ; hold on ; 
+    for ii = 1:44
+        plot(zone1{jj}(ii, :)-5*ii) ;
+    end
+    hold off
+end
+figure ;
+for ii = 1:44
+    hold on ;
+    tmp = [] ;
+    for jj = 1:7
+        tmp = [tmp ; zone1{jj}(ii, 1515:7575)] ;
+    end
+    plot(mean(tmp)-5*ii) ;
+end
+
+% --- CSD7 P2
+tmp = [] ;
+for ii = 1:21
+    tmp = [tmp ; zone.subzones{ii}.lfp_mean] ;
+end
+hold on ;
+for ii = 1:21
+    plot(tmp(ii, :)-1*ii) ;
+end
+hold off ;
+
+
+
+
+
+%----------------------
+
+f = figure ;
+grid on ;
+xticklabel = {'L6', 'L5', 'L4', 'L3', 'L2', 'L1', 'L0'} ;
+xticklabel = [xticklabel, xticklabel(end-1 :-1: 1)] ;
+yticklabel = {'A5', 'A4', 'A3', 'A2', 'A1'} ;
+yticklabel = [yticklabel, {'A/P0', 'P1', 'P2', 'P3', 'P4', 'P5'}] ;
+
+set(gca, 'GridLineStyle', '-',...
+         'XminorGrid'   , 'on',...
+         'XLim'         ,  [-6, 6],...
+         'XTick'        , [-6:6],...
+         'XTickLabel'   , xticklabel,...
+         'YMinorGrid'   , 'on',...
+         'YLim'         , [-5, 5],...
+         'YTick'        , [-5:5],...
+         'YTickLabel'   , yticklabel) ;
+
+line([0, 0], [-5, 5],...
+     'Parent', gca,...
+     'LineWidth', 1.5,...
+     'Color', 'r') ;
+line([-6, 6], [0, 0],...
+     'Parent', gca,...
+     'LineWidth', 1.5,...
+     'Color', 'g') ;
+text(-3.5, 3, ['\fontsize{40} \color{lightblue} \bf L'], 'Parent', gca) ;
+text(0, 3, ['\fontsize{40} \color{lightblue} \bf R']) ;
+
+
+
+
+% --- Display brain image
+function brainDisplayh(Object)
+    global DIMENSIONS UNITS IMGIDX ;
+    handles = guidata(hObject) ;
+    set(hObject, 'Units', 'normalized') ;
+    units = UNITS.dim ;
+    % --- Load & display brain image
+    images = getappdata(0, 'images') ;
+    brain_path = images{IMGIDX} ;
+    brain_image = imread(brain_path) ;
+    image(brain_image, 'Parent', handles.ax_brain) ;
+    xaxis = size(brain_image, 2) ;
+    yaxis = size(brain_image, 1) ;
+    
+    image_info  = imfinfo(brain_path) ;
+    if strcmp(lower(image_info.FormatSignature), 'bm')
+        colormap(gca, gray(256)) ;
+    end
+    if isfield(DIMENSIONS, 'ap')
+        set(handles.tx_ap, 'FontSize'       , 10,...
+                           'ForegroundColor', 'red',...
+                           'String'         , ['AP0: ', num2str(DIMENSIONS.ap), units]) ;
+    end
+                              
+    set(handles.ax_brain, 'XTick'     , [0 :xaxis/20: xaxis],...
+                          'XTickLabel', abs([-DIMENSIONS.inter :DIMENSIONS.lr/10: DIMENSIONS.lr-DIMENSIONS.inter]),...
+                          'YTick'     , [0 :yaxis/20: yaxis],...
+                          'YTickLabel', abs([-DIMENSIONS.ap :DIMENSIONS.dv/10: DIMENSIONS.dv-DIMENSIONS.ap]),...
+                          'FontSize'  , 7) ;
+    
+    handles.xshown  = get(handles.ax_brain, 'XTickLabel') ;
+    handles.yshown  = get(handles.ax_brain, 'YTickLabel') ;
+    handles.xtrue   = get(handles.ax_brain, 'XTick') ;
+    handles.ytrue   = get(handles.ax_brain, 'YTick') ;
+    hold(handles.ax_brain, 'on') ;
+    ap = DIMENSIONS.ap * yaxis / DIMENSIONS.dv ;
+
+    hap = plot(handles.ax_brain,...
+               1:xaxis, repmat(ap, xaxis, 1),...
+               'r--',...
+               'LineWidth', 1.5,...
+               'Tag', 'ap') ;
+    inter = DIMENSIONS.inter * xaxis / DIMENSIONS.lr ; 
+    hint = plot(handles.ax_brain,...
+                repmat(inter, yaxis, 1), 1:yaxis,...
+                'r--',...
+                'LineWidth', 1.5,...
+                'Tag', 'inter') ;
+    dcm_obj = datacursormode(gcf) ;
+    set(dcm_obj, 'DisplayStyle', 'datatip',...
+                 'Enable', 'on') ;
+    set(dcm_obj, 'UpdateFcn', {@windowFormat, [xaxis, yaxis]}) ;
+
+    set(handles.cb_cursor, 'Value', 1) ;
+    set(handles.cb_cursor, 'Callback', {@cb_cursor_Callback, dcm_obj}) ;
+    handles.dcm_obj = dcm_obj ;
+    guidata(hObject, handles) ;
+
+
+
+
+
+digits_colors = [] ;
+for iDepth = 1:length(spec.depths)-1
+    if depths_order(iDepth) > depths_order(iDepth+1)
+        digits_colors = [digits_colors, 'r'] ;
+    else
+        digits_colors = [digits_colors, 'b'] ;
+    end
+end
+
+lat_resp_mean = cellfun(@(x) (round(mean(x.latencies.resp(:, 2)))), z.subzones, 'UniformOutput', false) ;
+lat_bline_mean = cellfun(@(x) (round(mean(x.latencies.bline(:, 2)))), z.subzones, 'UniformOutput', false) ;
+
+
+
+plot(handles.ax_sp, zone.subzones{end}.spikes_raw') ;
+set(handles.pan_raw, 'Title', 'All spikes') ;
+text(1, 1, ['number of spikes detected: ', num2str(size(sraw, 1))]) ;
+
+
+  % if length(fieldnames(parameters)) > 1
+        %   chooseSetOfParameters ;
+        %     global SET ; 
+        %     parameters = parameters.(SET) ;
+        % else
+        %     global SET ;
+        %     SET = 'set0' ;
+        %   parameters = parameters.(SET) ;
+        % end
+        %parameters = structfun(@(x) (str2double(x)), parameters, 'UniformOutput', false) ;
+        %d = dir(NEUR_FOLDER) ;
+        %d =  {d(3:end).name} ;
+        %neur_folders = d(cell2mat(cellfun(@(x) (isdir(fullfile(NEUR_FOLDER, x))), d, 'UniformOutput', false))) ;
+        %wbar_limit = length(neur_folders) + 2 ;
+
+                % [zone.depths, idx] = sort(zone.depths) ;
+        % nb_depths = length(zone.depths) ; 
+        % tmp = cell(nb_depths, 1) ;
+        % for iDepth = 1:nb_depths, tmp{iDepth} = zone.subzones{idx(iDepth)} ; end
+        % zone.subzones = tmp ;
+        % clear tmp ;
+
+                %zone = getappdata(0, znames{1}) ;
+        % --- Creating new depth folder & subfolder
+        %depth_folder = fullfile(zone.output, depth) ;
+        %data_folder = last_folder ;
+        %mkdir(depth_folder) ;
+        %depth = str2double(depth) ;
+
+
+
+hold on ;
+
+for iDepth = 1:28
+    beg = round(mean(zone.subzones{iDepth}.latencies.resp(:, 1))) ;
+    plot(zone.subzones{iDepth}.lfp_mean(beg:beg+5000)-0*iDepth) ;
+end

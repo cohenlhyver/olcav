@@ -1,0 +1,75 @@
+Checker les fonctions de filtrage -> voir butter par exemple (see cl_pP_artifacts in LNC_U960 e.g.)
+
+Si la profondeur n'a pas changée -> proposer d'overwrite ?
+
+SPIKE A REGLER
+
+NE PAS AUTORISER LE CHANGEMENT DE ZONE!!!!!
+simplification des calculs
+
+A côté de depthDisplay -> indiquer, si possible, les couches (cf. Mitzdorf)
+
+REVOIR ADDPOINT -> respecter l'échelle par rapport à p0
+
+DISPLAYRESULTS -> ajouter une fonction de zoom
+			   -> finir raster, psth, sikes & csd
+			   -> essayer de mettre des flags par dessus le plot (pre stim, stim & post stim, barplot, area, fill etc...)
+			  -> 
+
+
+Proposer de superposer plusieurs images et jouer sur le alpha pour les faire apparaître
+-> redimensionner les images pour qu'elles fittent bien. 
+
+Ajouter un facteur de dissipation du signal en fonction de l'éloignement des points entre eux
+
+tester lfpContinuousDisplay en appelant successivement la fonction lfpDisplay (peut-être plus simple)
+
+A faire pour lundi :
+    - CSD, voir stem,
+    - Raster & Psth from .nse,
+    - Callback des points -> afficher courbes des latences correspondantes
+    - améliorer représentation des lfp,
+    
+    - dès l'ouverture de recSites, créer un dossier z1d1 dans lequel sera enregistré le premier set de stim. A chaque analyse, créer un nouveau dossier (z1d2 etc).
+    -> proposer dans ControlPanel, la création automatique des dossiers,
+    -> cela impose de faire les analyses en série.  
+
+Possibilité de faire plusieurs types d'expériences sur la même profondeur.
+
+GENERER UNE STRUCT EXP_STRUCT.MAT QUI REGROUPE TOUS LES PARAMETRES POUR CHAQUE DEPTH:
+    - sample_freq
+    - gain
+    - hicut
+PUIS, POUR TOUTE L'EXPE:
+    - NB_COND
+    - NB_DEPTHS
+    - PARAMETERS
+
+
+1. Proposer de sauver toutes les figures
+2. Mettre un curseur de "gain" pour l'observation des LFP all
+3. Mettre un double curseur pour sélectionner le temps de début et de fin de plot des données (toutes les données)
+
+define experiment features (offline version of OLCAV) -> proposer d'enlever des profondeurs à la main
+
+Plotter le nombre de spikes en fct de la profondeur.
+
+faire AVREC sur toute la profondeur !!!!!
++ MOYENNE des AVREC
+
+
+
+
+
+
+
+subplot(1, 6, [1:5]) ;
+plot(zone.subzones{1}.lfp') ;
+subplot(1, 6, 6) ;
+set(gca, 'XTick', []) ;
+set(gca, 'YTick', []) ;
+data = struct2cell(spec.animal) ;
+rname = fieldnames(spec.animal)' ;
+uitable('Data', data, 'RowName', rname, 'ColumnName', 'Value', 'Position', [1542 122 200 912]) ;
+
+ VOIR COMMENT SAUVEGARDER LE TABLEAU AVEC
